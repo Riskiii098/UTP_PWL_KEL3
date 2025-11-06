@@ -9,9 +9,6 @@ use Illuminate\Support\Facades\Crypt;
 
 class TaskController extends Controller
 {
-    /**
-     * Pastikan task milik user yang sedang login
-     */
     private function authorizeOwner(Task $task)
     {
         if ($task->user_id !== session('user_id')) {
@@ -19,15 +16,49 @@ class TaskController extends Controller
         }
     }
 
-    /**
-     * Tampilkan daftar tugas
-     */
-    public function index()
+    public function index(Request $request)
     {
-        $tasks = Task::where('user_id', session('user_id'))
-                     ->with('category')
-                     ->orderBy('deadline')
-                     ->get();
+        $query = Task::where('user_id', session('user_id'))->with('category');
+
+        // Filter
+        if ($request->filled('category_id')) {
+            $query->where('category_id', $request->category_id);
+        }
+
+        if ($request->filled('status')) {
+            if ($request->status == 'selesai') {
+                $query->where('status', true);
+            } elseif ($request->status == 'belum') {
+                $query->where('status', false);
+            }
+        }
+
+        if ($request->filled('priority')) {
+            $query->where('priority', $request->priority);
+        }
+
+        // Sort
+        if ($request->filled('sort')) {
+            $sort = $request->sort;
+            if ($sort == 'deadline') {
+                $query->orderBy('deadline');
+            } elseif ($sort == 'priority') {
+                // Urut tinggi > sedang > rendah
+                $query->orderByRaw("
+                    CASE 
+                        WHEN priority='tinggi' THEN 1
+                        WHEN priority='sedang' THEN 2
+                        ELSE 3
+                    END
+                ");
+            } elseif ($sort == 'title') {
+                $query->orderBy('title');
+            }
+        } else {
+            $query->orderBy('deadline'); // default
+        }
+
+        $tasks = $query->get();
 
         // Decrypt description
         foreach ($tasks as $task) {
@@ -38,21 +69,17 @@ class TaskController extends Controller
             }
         }
 
-        return view('tasks.index', compact('tasks'));
+        $categories = Category::where('user_id', session('user_id'))->get();
+
+        return view('tasks.index', compact('tasks', 'categories'));
     }
 
-    /**
-     * Tampilkan form tambah tugas
-     */
     public function create()
     {
         $categories = Category::where('user_id', session('user_id'))->get();
         return view('tasks.create', compact('categories'));
     }
 
-    /**
-     * Simpan tugas baru
-     */
     public function store(Request $request)
     {
         $request->validate([
@@ -60,6 +87,7 @@ class TaskController extends Controller
             'description' => 'nullable|string',
             'deadline'    => 'nullable|date',
             'category_id' => 'required|exists:categories,id',
+            'priority'    => 'required|in:rendah,sedang,tinggi',
         ]);
 
         Task::create([
@@ -67,15 +95,14 @@ class TaskController extends Controller
             'description' => Crypt::encryptString($request->description ?? ''),
             'deadline'    => $request->deadline,
             'category_id' => $request->category_id,
+            'priority'    => $request->priority,
+            'status'      => $request->has('status'),
             'user_id'     => session('user_id'),
         ]);
 
         return redirect()->route('tasks.index')->with('success', 'Tugas ditambahkan.');
     }
 
-    /**
-     * Tampilkan form edit tugas
-     */
     public function edit($id)
     {
         $task = Task::findOrFail($id);
@@ -91,9 +118,6 @@ class TaskController extends Controller
         return view('tasks.edit', compact('task', 'categories'));
     }
 
-    /**
-     * Update tugas
-     */
     public function update(Request $request, $id)
     {
         $task = Task::findOrFail($id);
@@ -104,6 +128,7 @@ class TaskController extends Controller
             'description' => 'nullable|string',
             'deadline'    => 'nullable|date',
             'category_id' => 'required|exists:categories,id',
+            'priority'    => 'required|in:rendah,sedang,tinggi',
         ]);
 
         $task->update([
@@ -111,15 +136,13 @@ class TaskController extends Controller
             'description' => Crypt::encryptString($request->description ?? ''),
             'deadline'    => $request->deadline,
             'category_id' => $request->category_id,
+            'priority'    => $request->priority,
             'status'      => $request->has('status'),
         ]);
 
         return redirect()->route('tasks.index')->with('success', 'Tugas diperbarui.');
     }
 
-    /**
-     * Hapus tugas
-     */
     public function destroy($id)
     {
         $task = Task::findOrFail($id);

@@ -2,33 +2,31 @@
 
 @section('content')
 <div class="flex justify-between items-center mb-6">
-  <h1 class="text-2xl font-semibold">Kategori</h1>
-  <div>
-    <a href="{{ route('tasks.index') }}" class="px-3 py-2 bg-white text-gray-700 rounded shadow hover:bg-gray-50 mr-2">Back to Tasks</a>
-    <a href="{{ route('categories.create') }}" class="px-3 py-2 bg-blue-600 text-white rounded shadow hover:bg-blue-700">+ Tambah Kategori</a>
-  </div>
+    <h1 class="text-2xl font-semibold">Kelola Kategori</h1>
+    <a href="{{ route('categories.create') }}" class="px-3 py-2 bg-green-600 text-white rounded shadow hover:bg-green-700">
+        + Tambah Kategori
+    </a>
 </div>
 
 @if($categories->isEmpty())
-  <div class="bg-white p-6 rounded shadow text-center text-gray-600">
-    Belum ada kategori. Tambah kategori baru.
-  </div>
+    <div class="bg-white p-6 rounded shadow text-center text-gray-600">
+        Belum ada kategori. Tambah kategori baru.
+    </div>
 @else
-  <div class="bg-white p-4 rounded shadow">
-    <ul class="divide-y">
-      @foreach($categories as $c)
-        <li class="py-3 flex justify-between items-center">
-          <span class="text-gray-800">{{ $c->name }}</span>
-          <div class="flex gap-2">
-            <a href="{{ route('categories.edit', $c) }}" class="px-3 py-1 border rounded text-sm">Edit</a>
-            <form action="{{ route('categories.destroy', $c) }}" method="POST" onsubmit="return confirm('Hapus kategori?');">
-              @csrf @method('DELETE')
-              <button class="px-3 py-1 border rounded text-sm text-red-600">Hapus</button>
-            </form>
-          </div>
-        </li>
-      @endforeach
-    </ul>
-  </div>
+    <div class="grid gap-4">
+        @foreach($categories as $category)
+            <div class="bg-white p-4 rounded shadow flex justify-between items-center">
+                <span class="text-gray-700 font-medium">{{ $category->name }}</span>
+                <div class="flex gap-2">
+                    <a href="{{ route('categories.edit', $category) }}" class="px-3 py-1 bg-yellow-100 text-yellow-800 rounded">Edit</a>
+                    <form action="{{ route('categories.destroy', $category) }}" method="POST" onsubmit="return confirm('Hapus kategori ini?');">
+                        @csrf
+                        @method('DELETE')
+                        <button type="submit" class="px-3 py-1 bg-red-100 text-red-700 rounded">Hapus</button>
+                    </form>
+                </div>
+            </div>
+        @endforeach
+    </div>
 @endif
 @endsection
