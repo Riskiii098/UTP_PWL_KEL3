@@ -1,7 +1,6 @@
 <?php
-
+// app/Models/Task.php
 namespace App\Models;
-
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
@@ -12,25 +11,19 @@ class Task extends Model
     protected $fillable = [
         'title',
         'description',
-        'status',
+        'status_id',      // UBAH dari 'status'
         'deadline',
         'category_id',
         'user_id',
-        'priority', // tambahkan
+        'priority_id',    // UBAH dari 'priority'
     ];
 
     protected $casts = [
-        'status' => 'boolean',
         'deadline' => 'date',
     ];
 
-    public function category()
-    {
-        return $this->belongsTo(Category::class);
-    }
-
-    public function user()
-    {
-        return $this->belongsTo(User::class);
-    }
+    public function category() { return $this->belongsTo(Category::class); }
+    public function priority() { return $this->belongsTo(Priority::class); }
+    public function status() { return $this->belongsTo(Status::class); }
+    public function user() { return $this->belongsTo(User::class); }
 }

@@ -1,10 +1,12 @@
 <?php
-
+// app/Http/Controllers/TaskController.php
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Task;
 use App\Models\Category;
+use App\Models\Priority;
+use App\Models\Status;
 use Illuminate\Support\Facades\Crypt;
 
 class TaskController extends Controller
@@ -18,23 +20,20 @@ class TaskController extends Controller
 
     public function index(Request $request)
     {
-        $query = Task::where('user_id', session('user_id'))->with('category');
+        $query = Task::where('user_id', session('user_id'))
+            ->with(['category', 'priority', 'status']);
 
         // Filter
         if ($request->filled('category_id')) {
             $query->where('category_id', $request->category_id);
         }
 
-        if ($request->filled('status')) {
-            if ($request->status == 'selesai') {
-                $query->where('status', true);
-            } elseif ($request->status == 'belum') {
-                $query->where('status', false);
-            }
+        if ($request->filled('status_id')) {
+            $query->where('status_id', $request->status_id);
         }
 
-        if ($request->filled('priority')) {
-            $query->where('priority', $request->priority);
+        if ($request->filled('priority_id')) {
+            $query->where('priority_id', $request->priority_id);
         }
 
         // Sort
@@ -42,15 +41,6 @@ class TaskController extends Controller
             $sort = $request->sort;
             if ($sort == 'deadline') {
                 $query->orderBy('deadline');
-            } elseif ($sort == 'priority') {
-                // Urut tinggi > sedang > rendah
-                $query->orderByRaw("
-                    CASE 
-                        WHEN priority='tinggi' THEN 1
-                        WHEN priority='sedang' THEN 2
-                        ELSE 3
-                    END
-                ");
             } elseif ($sort == 'title') {
                 $query->orderBy('title');
             }
@@ -70,14 +60,18 @@ class TaskController extends Controller
         }
 
         $categories = Category::where('user_id', session('user_id'))->get();
+        $priorities = Priority::where('user_id', session('user_id'))->get();
+        $statuses = Status::where('user_id', session('user_id'))->get();
 
-        return view('tasks.index', compact('tasks', 'categories'));
+        return view('tasks.index', compact('tasks', 'categories', 'priorities', 'statuses'));
     }
 
     public function create()
     {
         $categories = Category::where('user_id', session('user_id'))->get();
-        return view('tasks.create', compact('categories'));
+        $priorities = Priority::where('user_id', session('user_id'))->get();
+        $statuses = Status::where('user_id', session('user_id'))->get();
+        return view('tasks.create', compact('categories', 'priorities', 'statuses'));
     }
 
     public function store(Request $request)
@@ -87,7 +81,8 @@ class TaskController extends Controller
             'description' => 'nullable|string',
             'deadline'    => 'nullable|date',
             'category_id' => 'required|exists:categories,id',
-            'priority'    => 'required|in:rendah,sedang,tinggi',
+            'priority_id' => 'nullable|exists:priorities,id',
+            'status_id'   => 'nullable|exists:statuses,id',
         ]);
 
         Task::create([
@@ -95,8 +90,8 @@ class TaskController extends Controller
             'description' => Crypt::encryptString($request->description ?? ''),
             'deadline'    => $request->deadline,
             'category_id' => $request->category_id,
-            'priority'    => $request->priority,
-            'status'      => $request->has('status'),
+            'priority_id' => $request->priority_id,
+            'status_id'   => $request->status_id,
             'user_id'     => session('user_id'),
         ]);
 
@@ -115,7 +110,9 @@ class TaskController extends Controller
         }
 
         $categories = Category::where('user_id', session('user_id'))->get();
-        return view('tasks.edit', compact('task', 'categories'));
+        $priorities = Priority::where('user_id', session('user_id'))->get();
+        $statuses = Status::where('user_id', session('user_id'))->get();
+        return view('tasks.edit', compact('task', 'categories', 'priorities', 'statuses'));
     }
 
     public function update(Request $request, $id)
@@ -128,7 +125,8 @@ class TaskController extends Controller
             'description' => 'nullable|string',
             'deadline'    => 'nullable|date',
             'category_id' => 'required|exists:categories,id',
-            'priority'    => 'required|in:rendah,sedang,tinggi',
+            'priority_id' => 'nullable|exists:priorities,id',
+            'status_id'   => 'nullable|exists:statuses,id',
         ]);
 
         $task->update([
@@ -136,8 +134,8 @@ class TaskController extends Controller
             'description' => Crypt::encryptString($request->description ?? ''),
             'deadline'    => $request->deadline,
             'category_id' => $request->category_id,
-            'priority'    => $request->priority,
-            'status'      => $request->has('status'),
+            'priority_id' => $request->priority_id,
+            'status_id'   => $request->status_id,
         ]);
 
         return redirect()->route('tasks.index')->with('success', 'Tugas diperbarui.');

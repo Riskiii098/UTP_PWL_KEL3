@@ -1,3 +1,4 @@
+{{-- resources/views/tasks/index.blade.php --}}
 @extends('layouts.main')
 
 @section('content')
@@ -5,6 +6,8 @@
     <h1 class="text-2xl font-semibold">Daftar Tugas</h1>
     <div class="flex gap-2">
         <a href="{{ route('categories.index') }}" class="px-3 py-2 bg-white text-gray-700 rounded shadow hover:bg-gray-50">Kelola Kategori</a>
+        <a href="{{ route('priorities.index') }}" class="px-3 py-2 bg-white text-gray-700 rounded shadow hover:bg-gray-50">Kelola Prioritas</a>
+        <a href="{{ route('statuses.index') }}" class="px-3 py-2 bg-white text-gray-700 rounded shadow hover:bg-gray-50">Kelola Status</a>
         <a href="{{ route('tasks.create') }}" class="px-3 py-2 bg-green-600 text-white rounded shadow hover:bg-green-700">+ Tambah Tugas</a>
     </div>
 </div>
@@ -23,20 +26,21 @@
 
     <div>
         <label class="block text-sm font-medium">Status</label>
-        <select name="status" class="border p-2 rounded">
+        <select name="status_id" class="border p-2 rounded">
             <option value="">Semua</option>
-            <option value="selesai" {{ request('status')=='selesai' ? 'selected' : '' }}>Selesai</option>
-            <option value="belum" {{ request('status')=='belum' ? 'selected' : '' }}>Belum</option>
+            @foreach($statuses as $s)
+                <option value="{{ $s->id }}" {{ request('status_id') == $s->id ? 'selected' : '' }}>{{ $s->nama }}</option>
+            @endforeach
         </select>
     </div>
 
     <div>
         <label class="block text-sm font-medium">Prioritas</label>
-        <select name="priority" class="border p-2 rounded">
+        <select name="priority_id" class="border p-2 rounded">
             <option value="">Semua</option>
-            <option value="tinggi" {{ request('priority')=='tinggi' ? 'selected' : '' }}>Tinggi</option>
-            <option value="sedang" {{ request('priority')=='sedang' ? 'selected' : '' }}>Sedang</option>
-            <option value="rendah" {{ request('priority')=='rendah' ? 'selected' : '' }}>Rendah</option>
+            @foreach($priorities as $p)
+                <option value="{{ $p->id }}" {{ request('priority_id') == $p->id ? 'selected' : '' }}>{{ $p->nama }}</option>
+            @endforeach
         </select>
     </div>
 
@@ -44,7 +48,6 @@
         <label class="block text-sm font-medium">Urutkan</label>
         <select name="sort" class="border p-2 rounded">
             <option value="deadline" {{ request('sort')=='deadline' ? 'selected' : '' }}>Deadline</option>
-            <option value="priority" {{ request('sort')=='priority' ? 'selected' : '' }}>Prioritas</option>
             <option value="title" {{ request('sort')=='title' ? 'selected' : '' }}>Judul</option>
         </select>
     </div>
@@ -64,16 +67,16 @@
         @foreach($tasks as $task)
             <div class="bg-white p-4 rounded shadow flex justify-between items-start">
                 <div class="pr-4">
-                    <h2 class="text-lg font-semibold {{ $task->status ? 'line-through text-gray-400' : '' }}">{{ $task->title }}</h2>
+                    <h2 class="text-lg font-semibold">{{ $task->title }}</h2>
                     <p class="text-gray-600 mt-2">{{ $task->description }}</p>
                     <div class="flex gap-3 text-sm text-gray-400 mt-3 flex-wrap">
                         <span>Deadline: {{ $task->deadline?->format('Y-m-d') ?? '-' }}</span>
                         <span>|</span>
                         <span>Kategori: {{ $task->category->name ?? '-' }}</span>
                         <span>|</span>
-                        <span>Prioritas: {{ ucfirst($task->priority) }}</span>
+                        <span>Prioritas: {{ $task->priority->nama ?? '-' }}</span>
                         <span>|</span>
-                        <span>Status: {{ $task->status ? 'Selesai' : 'Belum' }}</span>
+                        <span>Status: {{ $task->status->nama ?? '-' }}</span>
                     </div>
                 </div>
                 <div class="flex flex-col items-end gap-2">

@@ -1,3 +1,4 @@
+{{-- resources/views/tasks/edit.blade.php --}}
 @extends('layouts.main')
 
 @section('content')
@@ -40,6 +41,7 @@
         <div>
             <label class="block mb-1 font-medium">Kategori</label>
             <select name="category_id" required class="w-full border p-2 rounded">
+                <option value="">Pilih Kategori</option>
                 @foreach ($categories as $c)
                     <option value="{{ $c->id }}" {{ old('category_id', $task->category_id) == $c->id ? 'selected' : '' }}>{{ $c->name }}</option>
                 @endforeach
@@ -48,16 +50,26 @@
 
         <div>
             <label class="block mb-1 font-medium">Prioritas</label>
-            <select name="priority" required class="w-full border p-2 rounded">
-                <option value="rendah" {{ old('priority', $task->priority) == 'rendah' ? 'selected' : '' }}>Rendah</option>
-                <option value="sedang" {{ old('priority', $task->priority) == 'sedang' ? 'selected' : '' }}>Sedang</option>
-                <option value="tinggi" {{ old('priority', $task->priority) == 'tinggi' ? 'selected' : '' }}>Tinggi</option>
+            <select name="priority_id" class="w-full border p-2 rounded">
+                <option value="">Pilih Prioritas</option>
+                @foreach ($priorities as $p)
+                    <option value="{{ $p->id }}" {{ old('priority_id', $task->priority_id) == $p->id ? 'selected' : '' }}>
+                        {{ $p->nama }} (Level {{ $p->level }})
+                    </option>
+                @endforeach
             </select>
         </div>
 
-        <div class="flex items-center gap-2">
-            <input type="checkbox" name="status" {{ old('status', $task->status) ? 'checked' : '' }}>
-            <label class="text-sm font-medium">Selesai</label>
+        <div>
+            <label class="block mb-1 font-medium">Status</label>
+            <select name="status_id" class="w-full border p-2 rounded">
+                <option value="">Pilih Status</option>
+                @foreach ($statuses as $s)
+                    <option value="{{ $s->id }}" {{ old('status_id', $task->status_id) == $s->id ? 'selected' : '' }}>
+                        {{ $s->nama }}
+                    </option>
+                @endforeach
+            </select>
         </div>
 
         <button type="submit" class="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 transition">

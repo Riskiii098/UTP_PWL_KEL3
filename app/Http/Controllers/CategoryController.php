@@ -11,27 +11,49 @@ class CategoryController extends Controller
     }
 
     public function index(){
-        $categories = Category::where('user_id', session('user_id'))->get();
+        $categories = Category::where('user_id', session('user_id'))
+            ->withCount('tasks')
+            ->get();
         return view('categories.index', compact('categories'));
     }
-    public function create(){ return view('categories.create'); }
+    
+    public function create(){ 
+        return view('categories.create'); 
+    }
+    
     public function store(Request $r){
-        $r->validate(['name'=>'required|string|max:100']);
-        Category::create(['name'=>$r->name,'user_id'=>session('user_id')]);
+        $r->validate([
+            'name' => 'required|string|max:100',
+            'deskripsi' => 'nullable|string'
+        ]);
+        Category::create([
+            'name' => $r->name,
+            'deskripsi' => $r->deskripsi,
+            'user_id' => session('user_id')
+        ]);
         return redirect()->route('categories.index')->with('success','Kategori dibuat');
     }
+    
     public function edit($id){
         $category = Category::findOrFail($id);
         $this->authorizeOwner($category);
         return view('categories.edit', compact('category'));
     }
+    
     public function update(Request $r,$id){
         $category = Category::findOrFail($id);
         $this->authorizeOwner($category);
-        $r->validate(['name'=>'required|string|max:100']);
-        $category->update(['name'=>$r->name]);
+        $r->validate([
+            'name' => 'required|string|max:100',
+            'deskripsi' => 'nullable|string'
+        ]);
+        $category->update([
+            'name' => $r->name,
+            'deskripsi' => $r->deskripsi
+        ]);
         return redirect()->route('categories.index')->with('success','Kategori diperbarui');
     }
+    
     public function destroy($id){
         $category = Category::findOrFail($id);
         $this->authorizeOwner($category);
