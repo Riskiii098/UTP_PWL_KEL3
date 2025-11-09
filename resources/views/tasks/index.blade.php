@@ -77,7 +77,16 @@
                         <span>Prioritas: {{ $task->priority->nama ?? '-' }}</span>
                         <span>|</span>
                         <span>Status: {{ $task->status->nama ?? '-' }}</span>
+                         <span>
+        Mood: 
+        @if($task->mood)
+            {{ $task->mood->emoji }} {{ $task->mood->name }}
+        @else
+            -
+        @endif
+    </span>
                     </div>
+
                 </div>
                 <div class="flex flex-col items-end gap-2">
                     <a href="{{ route('tasks.edit', $task) }}" class="px-3 py-1 bg-yellow-100 text-yellow-800 rounded">Edit</a>
