@@ -26,6 +26,7 @@
             <div>
                 <p class="text-green-100 text-sm font-medium mb-1">Tugas Selesai</p>
                 <h3 class="text-4xl font-bold">{{ $tugasSelesai }}</h3>
+                
             </div>
             <div class="bg-white/20 p-3 rounded-lg">
                 <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -86,6 +87,7 @@
                             <th class="px-4 py-3 text-left text-sm font-semibold text-gray-700">Prioritas</th>
                             <th class="px-4 py-3 text-left text-sm font-semibold text-gray-700">Status</th>
                             <th class="px-4 py-3 text-left text-sm font-semibold text-gray-700">Deadline</th>
+                            <th class="px-4 py-3 text-left text-sm font-semibold text-gray-700">Mood</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-gray-200">
@@ -100,6 +102,7 @@
                             <td class="px-4 py-3">
                                 <span class="text-sm text-gray-600">{{ $task->priority->nama ?? '-' }}</span>
                             </td>
+                            
                             <td class="px-4 py-3">
                                 @if($task->status)
                                 <span class="px-2 py-1 text-xs rounded text-white" style="background-color: {{ $task->status->color }}">
@@ -112,6 +115,14 @@
                             <td class="px-4 py-3 text-sm text-gray-600">
                                 {{ $task->deadline ? $task->deadline->format('d/m/Y') : '-' }}
                             </td>
+                           <td class="px-4 py-3 text-sm text-gray-600">
+    @if($task->mood)
+        {{ $task->mood->emoji }} {{ $task->mood->name }}
+    @else
+        -
+    @endif
+</td>
+
                         </tr>
                         @endforeach
                     </tbody>
@@ -154,5 +165,7 @@
             </a>
         </div>
     </div>
+
+
 </div>
 @endsection
