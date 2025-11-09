@@ -8,6 +8,8 @@ use App\Models\Category;
 use App\Models\Priority;
 use App\Models\Status;
 use Illuminate\Support\Facades\Crypt;
+use App\Models\Mood;
+
 
 class TaskController extends Controller
 {
@@ -21,7 +23,7 @@ class TaskController extends Controller
     public function index(Request $request)
     {
         $query = Task::where('user_id', session('user_id'))
-            ->with(['category', 'priority', 'status']);
+            ->with(['category', 'priority', 'status', 'mood']);
 
         // Filter
         if ($request->filled('category_id')) {
@@ -34,6 +36,10 @@ class TaskController extends Controller
 
         if ($request->filled('priority_id')) {
             $query->where('priority_id', $request->priority_id);
+        }
+
+        if ($request->filled('mood_id')) {
+            $query->where('mood_id', $request->mood_id);
         }
 
         // Sort
@@ -62,8 +68,8 @@ class TaskController extends Controller
         $categories = Category::where('user_id', session('user_id'))->get();
         $priorities = Priority::where('user_id', session('user_id'))->get();
         $statuses = Status::where('user_id', session('user_id'))->get();
-
-        return view('tasks.index', compact('tasks', 'categories', 'priorities', 'statuses'));
+        $moods = Mood::all();
+        return view('tasks.index', compact('tasks', 'categories', 'priorities', 'statuses', 'moods'));
     }
 
     public function create()
@@ -71,7 +77,9 @@ class TaskController extends Controller
         $categories = Category::where('user_id', session('user_id'))->get();
         $priorities = Priority::where('user_id', session('user_id'))->get();
         $statuses = Status::where('user_id', session('user_id'))->get();
-        return view('tasks.create', compact('categories', 'priorities', 'statuses'));
+        $moods = Mood::all();
+        return view('tasks.create', compact('categories', 'priorities', 'statuses', 'moods'));
+
     }
 
     public function store(Request $request)
@@ -83,6 +91,7 @@ class TaskController extends Controller
             'category_id' => 'required|exists:categories,id',
             'priority_id' => 'nullable|exists:priorities,id',
             'status_id'   => 'nullable|exists:statuses,id',
+            'mood_id' => 'nullable|exists:moods,id',
         ]);
 
         Task::create([
@@ -92,6 +101,7 @@ class TaskController extends Controller
             'category_id' => $request->category_id,
             'priority_id' => $request->priority_id,
             'status_id'   => $request->status_id,
+            'mood_id' => $request->mood_id,
             'user_id'     => session('user_id'),
         ]);
 
@@ -112,7 +122,8 @@ class TaskController extends Controller
         $categories = Category::where('user_id', session('user_id'))->get();
         $priorities = Priority::where('user_id', session('user_id'))->get();
         $statuses = Status::where('user_id', session('user_id'))->get();
-        return view('tasks.edit', compact('task', 'categories', 'priorities', 'statuses'));
+        $moods = Mood::all();
+        return view('tasks.edit', compact('task', 'categories', 'priorities', 'statuses', 'moods'));
     }
 
     public function update(Request $request, $id)
@@ -127,6 +138,7 @@ class TaskController extends Controller
             'category_id' => 'required|exists:categories,id',
             'priority_id' => 'nullable|exists:priorities,id',
             'status_id'   => 'nullable|exists:statuses,id',
+            'mood_id' => 'nullable|exists:moods,id'
         ]);
 
         $task->update([
@@ -136,6 +148,8 @@ class TaskController extends Controller
             'category_id' => $request->category_id,
             'priority_id' => $request->priority_id,
             'status_id'   => $request->status_id,
+            'mood_id' => $request->mood_id,
+            
         ]);
 
         return redirect()->route('tasks.index')->with('success', 'Tugas diperbarui.');
