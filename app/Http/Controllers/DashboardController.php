@@ -49,9 +49,9 @@ class DashboardController extends Controller
             })
             ->count();
         
-        // Recent tasks (5 terbaru)
+// Recent tasks (5 terbaru)
         $recentTasks = Task::where('user_id', $userId)
-            ->with(['category', 'priority', 'status'])
+            ->with(['category', 'priority', 'status', 'mood'])
             ->orderBy('created_at', 'desc')
             ->limit(5)
             ->get();
