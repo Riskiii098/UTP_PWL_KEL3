@@ -5,18 +5,15 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration {
     public function up(): void {
-        Schema::create('tasks', function (Blueprint $table) {
+        Schema::create('priorities', function (Blueprint $table) {
             $table->id();
-            $table->string('title');
-            $table->text('description')->nullable();
-            $table->boolean('status')->default(false);
-            $table->date('deadline')->nullable();
-            $table->foreignId('category_id')->constrained()->cascadeOnDelete();
+            $table->string('nama', 100);
+            $table->integer('level')->default(1); // 1-5
             $table->foreignId('user_id')->constrained()->cascadeOnDelete();
             $table->timestamps();
         });
     }
     public function down(): void {
-        Schema::dropIfExists('tasks');
+        Schema::dropIfExists('priorities');
     }
 };

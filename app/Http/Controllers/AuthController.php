@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use App\Models\User;
+use Database\Seeders\DefaultDataSeeder;
 
 class AuthController extends Controller
 {
@@ -26,18 +27,25 @@ class AuthController extends Controller
             'password' => 'required|min:6',
         ]);
 
+        // Create user
         $user = User::create([
             'name' => $request->name,
             'email' => $request->email,
             'password' => Hash::make($request->password),
         ]);
 
+        // Set session
         session([
             'user_id' => $user->id,
             'user_name' => $user->name,
         ]);
 
-        return redirect()->route('tasks.index')->with('success', 'Registrasi berhasil! Selamat datang, ' . $user->name . '.');
+        // Seed default data (POSISI SUDAH BENAR - setelah user dibuat dan session di-set)
+        $seeder = new DefaultDataSeeder();
+        $seeder->run($user->id);
+
+        // Redirect ke dashboard setelah register
+        return redirect()->route('dashboard')->with('success', 'Registrasi berhasil! Selamat datang, ' . $user->name . '.');
     }
 
     public function login(Request $request)
@@ -55,7 +63,8 @@ class AuthController extends Controller
                 'user_name' => $user->name,
             ]);
 
-            return redirect()->route('tasks.index')->with('success', 'Login berhasil! Selamat datang kembali, ' . $user->name . '.');
+            // Redirect ke dashboard setelah login
+            return redirect()->route('dashboard')->with('success', 'Login berhasil! Selamat datang kembali, ' . $user->name . '.');
         }
 
         return back()->withErrors(['email' => 'Email atau password salah.']);

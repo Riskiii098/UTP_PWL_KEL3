@@ -1,17 +1,18 @@
 <?php
-
+// app/Http/Controllers/TaskController.php
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Task;
 use App\Models\Category;
+use App\Models\Priority;
+use App\Models\Status;
 use Illuminate\Support\Facades\Crypt;
+use App\Models\Mood;
+
 
 class TaskController extends Controller
 {
-    /**
-     * Pastikan task milik user yang sedang login
-     */
     private function authorizeOwner(Task $task)
     {
         if ($task->user_id !== session('user_id')) {
@@ -19,15 +20,41 @@ class TaskController extends Controller
         }
     }
 
-    /**
-     * Tampilkan daftar tugas
-     */
-    public function index()
+    public function index(Request $request)
     {
-        $tasks = Task::where('user_id', session('user_id'))
-                     ->with('category')
-                     ->orderBy('deadline')
-                     ->get();
+        $query = Task::where('user_id', session('user_id'))
+            ->with(['category', 'priority', 'status', 'mood']);
+
+        // Filter
+        if ($request->filled('category_id')) {
+            $query->where('category_id', $request->category_id);
+        }
+
+        if ($request->filled('status_id')) {
+            $query->where('status_id', $request->status_id);
+        }
+
+        if ($request->filled('priority_id')) {
+            $query->where('priority_id', $request->priority_id);
+        }
+
+        if ($request->filled('mood_id')) {
+            $query->where('mood_id', $request->mood_id);
+        }
+
+        // Sort
+        if ($request->filled('sort')) {
+            $sort = $request->sort;
+            if ($sort == 'deadline') {
+                $query->orderBy('deadline');
+            } elseif ($sort == 'title') {
+                $query->orderBy('title');
+            }
+        } else {
+            $query->orderBy('deadline'); // default
+        }
+
+        $tasks = $query->get();
 
         // Decrypt description
         foreach ($tasks as $task) {
@@ -38,21 +65,23 @@ class TaskController extends Controller
             }
         }
 
-        return view('tasks.index', compact('tasks'));
+        $categories = Category::where('user_id', session('user_id'))->get();
+        $priorities = Priority::where('user_id', session('user_id'))->get();
+        $statuses = Status::where('user_id', session('user_id'))->get();
+        $moods = Mood::all();
+        return view('tasks.index', compact('tasks', 'categories', 'priorities', 'statuses', 'moods'));
     }
 
-    /**
-     * Tampilkan form tambah tugas
-     */
     public function create()
     {
         $categories = Category::where('user_id', session('user_id'))->get();
-        return view('tasks.create', compact('categories'));
+        $priorities = Priority::where('user_id', session('user_id'))->get();
+        $statuses = Status::where('user_id', session('user_id'))->get();
+        $moods = Mood::all();
+        return view('tasks.create', compact('categories', 'priorities', 'statuses', 'moods'));
+
     }
 
-    /**
-     * Simpan tugas baru
-     */
     public function store(Request $request)
     {
         $request->validate([
@@ -60,6 +89,9 @@ class TaskController extends Controller
             'description' => 'nullable|string',
             'deadline'    => 'nullable|date',
             'category_id' => 'required|exists:categories,id',
+            'priority_id' => 'nullable|exists:priorities,id',
+            'status_id'   => 'nullable|exists:statuses,id',
+            'mood_id' => 'nullable|exists:moods,id',
         ]);
 
         Task::create([
@@ -67,15 +99,15 @@ class TaskController extends Controller
             'description' => Crypt::encryptString($request->description ?? ''),
             'deadline'    => $request->deadline,
             'category_id' => $request->category_id,
+            'priority_id' => $request->priority_id,
+            'status_id'   => $request->status_id,
+            'mood_id' => $request->mood_id,
             'user_id'     => session('user_id'),
         ]);
 
         return redirect()->route('tasks.index')->with('success', 'Tugas ditambahkan.');
     }
 
-    /**
-     * Tampilkan form edit tugas
-     */
     public function edit($id)
     {
         $task = Task::findOrFail($id);
@@ -88,12 +120,12 @@ class TaskController extends Controller
         }
 
         $categories = Category::where('user_id', session('user_id'))->get();
-        return view('tasks.edit', compact('task', 'categories'));
+        $priorities = Priority::where('user_id', session('user_id'))->get();
+        $statuses = Status::where('user_id', session('user_id'))->get();
+        $moods = Mood::all();
+        return view('tasks.edit', compact('task', 'categories', 'priorities', 'statuses', 'moods'));
     }
 
-    /**
-     * Update tugas
-     */
     public function update(Request $request, $id)
     {
         $task = Task::findOrFail($id);
@@ -104,6 +136,9 @@ class TaskController extends Controller
             'description' => 'nullable|string',
             'deadline'    => 'nullable|date',
             'category_id' => 'required|exists:categories,id',
+            'priority_id' => 'nullable|exists:priorities,id',
+            'status_id'   => 'nullable|exists:statuses,id',
+            'mood_id' => 'nullable|exists:moods,id'
         ]);
 
         $task->update([
@@ -111,15 +146,15 @@ class TaskController extends Controller
             'description' => Crypt::encryptString($request->description ?? ''),
             'deadline'    => $request->deadline,
             'category_id' => $request->category_id,
-            'status'      => $request->has('status'),
+            'priority_id' => $request->priority_id,
+            'status_id'   => $request->status_id,
+            'mood_id' => $request->mood_id,
+            
         ]);
 
         return redirect()->route('tasks.index')->with('success', 'Tugas diperbarui.');
     }
 
-    /**
-     * Hapus tugas
-     */
     public function destroy($id)
     {
         $task = Task::findOrFail($id);

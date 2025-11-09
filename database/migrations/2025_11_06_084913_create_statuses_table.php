@@ -5,15 +5,16 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration {
     public function up(): void {
-        Schema::create('categories', function (Blueprint $table) {
+        Schema::create('statuses', function (Blueprint $table) {
             $table->id();
-            $table->string('name');
-            $table->text('deskripsi')->nullable();
+            $table->string('nama', 100);
+            $table->string('tipe', 50)->default('Dalam Proses');
+            $table->string('color', 20)->default('#3B82F6'); // Warna hex
             $table->foreignId('user_id')->constrained()->cascadeOnDelete();
             $table->timestamps();
         });
     }
     public function down(): void {
-        Schema::dropIfExists('categories');
+        Schema::dropIfExists('statuses');
     }
 };

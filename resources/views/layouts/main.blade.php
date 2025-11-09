@@ -37,8 +37,11 @@
     <div class="container mx-auto flex justify-between items-center">
       <h1 class="text-2xl font-bold tracking-wide">📝 ToDo List App</h1>
       <ul class="flex items-center space-x-6">
+        <li><a href="{{ route('dashboard') }}" class="nav-link">Dashboard</a></li>
         <li><a href="{{ route('tasks.index') }}" class="nav-link">Tugas</a></li>
         <li><a href="{{ route('categories.index') }}" class="nav-link">Kategori</a></li>
+        <li><a href="{{ route('priorities.index') }}" class="nav-link">Prioritas</a></li>
+        <li><a href="{{ route('statuses.index') }}" class="nav-link">Status</a></li>   
 
         {{-- 🔽 Profile Dropdown --}}
         <li class="relative">
