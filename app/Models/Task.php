@@ -16,6 +16,7 @@ class Task extends Model
         'category_id',
         'user_id',
         'priority_id',    // UBAH dari 'priority'
+        'mood_id'
     ];
 
     protected $casts = [
@@ -26,4 +27,10 @@ class Task extends Model
     public function priority() { return $this->belongsTo(Priority::class); }
     public function status() { return $this->belongsTo(Status::class); }
     public function user() { return $this->belongsTo(User::class); }
+    
+    public function mood()
+{
+    return $this->belongsTo(Mood::class);
+}
+
 }
